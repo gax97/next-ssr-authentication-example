@@ -2,6 +2,7 @@ import * as jwt from 'jsonwebtoken';
 import { serialize } from 'cookie';
 import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
+import * as bcrypt from 'bcrypt';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +12,8 @@ export default async function handler(
 
   const user = await prisma.user.findFirst({ where: { email } });
 
-  if (!user || user.password !== password) {
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!user || !isValid) {
     return res.status(401).json({ error: `Invalid credentials` });
   }
   const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, {
