@@ -1,75 +1,76 @@
-import Head from 'next/head';
-import Image from 'next/image';
+import Link from 'next/link';
 
 import styles from '@/styles/Home.module.css';
+import { GetServerSideProps } from 'next';
+import { authenticate } from '@/lib/authenticate';
+import { getAllPosts, getFreePosts } from '@/lib/posts';
 
-export default function Home() {
+export default function Home({ posts, user }) {
   return (
     <div className={styles.container}>
-      <Head>
-        <title>TypeScript starter for Next.js</title>
-        <meta
-          name="description"
-          content="TypeScript starter for Next.js that includes all you need to build amazing apps"
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+      {user ? (
+        <h1 style={{ textAlign: `center` }}>
+          User: {user.email}.
+          <br />
+          Premium{` `}
+          {user.subscribed ? <span>&#10003;</span> : <span>&#88;</span>}
         </h1>
-
-        <p className={styles.description}>
-          Get started by editing{` `}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <p className={styles.description}>This is not an official starter!</p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=typescript-nextjs-starter"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=typescript-nextjs-starter"
-          target="_blank"
-          rel="noopener noreferrer"
+      ) : (
+        <h1>Guest user</h1>
+      )}
+      {user ? (
+        <button
+          onClick={() =>
+            fetch(`/api/users/logout`, {
+              method: `POST`,
+            }).then(() => {
+              window.location.reload();
+            })
+          }
         >
-          Powered by{` `}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+          Logout
+        </button>
+      ) : (
+        <Link href="/login">
+          <a>Login</a>
+        </Link>
+      )}
+      <main className={styles.main}>
+        {posts.map((post) => {
+          return (
+            <article key={post.id}>
+              <h2>{post.title}</h2>
+              <p>{post.content}</p>
+              <Link href={`/posts/${post.id}`}>
+                <a>Read more</a>
+              </Link>
+            </article>
+          );
+        })}
+      </main>
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  let posts = [];
+  let authUser = null;
+  try {
+    const user = await authenticate(req);
+    authUser = user;
+    if (user.subscribed) {
+      posts = await getAllPosts();
+    } else {
+      posts = await getFreePosts();
+    }
+  } catch (e) {
+    posts = await getFreePosts();
+  }
+
+  return {
+    props: {
+      posts,
+      user: authUser,
+    },
+  };
+};

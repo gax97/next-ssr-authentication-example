@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
 
-export const authenticate = (req) => {
+export const authenticate: any = (req) => {
   // get token from cookies
   const token = req.cookies.token;
   return new Promise((resolve, reject) => {
@@ -9,13 +9,22 @@ export const authenticate = (req) => {
       if (err) {
         reject(new Error(`Unauthorized`));
       } else {
-        prisma.user.findUnique({ where: { id: decoded.sub } }).then((user) => {
-          if (user) {
-            return resolve(user);
-          } else {
-            reject(new Error(`Unauthorized`));
-          }
-        });
+        prisma.user
+          .findUnique({
+            where: { id: decoded.sub },
+            select: {
+              id: true,
+              email: true,
+              subscribed: true,
+            },
+          })
+          .then((user) => {
+            if (user) {
+              return resolve(user);
+            } else {
+              reject(new Error(`Unauthorized`));
+            }
+          });
       }
     });
   });
