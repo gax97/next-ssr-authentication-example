@@ -10,19 +10,13 @@ generator client {
 model User {
   id        String   @id @default(uuid())
   email     String?  @unique
-  image     String?
   password  String
   subscribed Boolean? @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Post {
   id        String   @id @default(uuid())
   title     String
   content   String
-  published Boolean
   premium   Boolean? @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

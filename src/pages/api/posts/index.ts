@@ -9,10 +9,13 @@ export default async function handler(
   try {
     const user = await authenticate(req);
     if (user.subscribed) {
-      return res.status(200).json(getAllPosts());
+      const posts = await getAllPosts();
+      return res.status(200).json(posts);
     }
-    return res.status(200).json(getFreePosts());
+    const posts = await getFreePosts();
+    return res.status(200).json(posts);
   } catch (error) {
-    res.status(200).json(getFreePosts());
+    const posts = await getFreePosts();
+    res.status(200).json(posts);
   }
 }
