@@ -24,7 +24,8 @@ export const authenticate: any = (req) => {
             } else {
               reject(new Error(`Unauthorized`));
             }
-          });
+          })
+          .catch(reject);
       }
     });
   });
