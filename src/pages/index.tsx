@@ -22,7 +22,7 @@ export default function Home({ posts, user }) {
         <button
           onClick={() =>
             fetch(`/api/users/logout`, {
-              method: `POST`,
+              method: `DELETE`,
             }).then(() => {
               window.location.reload();
             })
