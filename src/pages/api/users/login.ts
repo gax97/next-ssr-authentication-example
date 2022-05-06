@@ -3,11 +3,13 @@ import { serialize } from 'cookie';
 import prisma from '@/lib/prisma';
 import { NextApiRequest, NextApiResponse } from 'next';
 import * as bcrypt from 'bcrypt';
+import { handleRequestMethod } from '@/lib/handle-request-method';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  handleRequestMethod(req, `POST`);
   const { email, password } = req.body;
 
   const user = await prisma.user.findFirst({ where: { email } });
